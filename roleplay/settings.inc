@@ -1,0 +1,13 @@
+#undef MAX_PLAYERS
+#define MAX_PLAYERS 50
+
+#define GAMEMODE_AUTHOR "Neproify"
+#define GAMEMODE_VERSION_STRING "0.1.0"
+#define GAMEMODE_NAME "Roleplay"
+
+#define GAMEMODE_VERSION_MAJOR 0
+#define GAMEMODE_VERSION_MINOR 1
+#define GAMEMODE_VERSION_PATCH 0
+
+#define CHAT_GLOBAL true
+new bool:GlobalChatEnabled = CHAT_GLOBAL;
