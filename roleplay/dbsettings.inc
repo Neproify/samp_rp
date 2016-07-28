@@ -3,4 +3,4 @@
 #define DB_PASSWORD ""
 #define DB_DATABASE "samp"
 
-new MySQL;
+new dbHandler;

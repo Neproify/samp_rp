@@ -9,5 +9,7 @@
 #define GAMEMODE_VERSION_MINOR 1
 #define GAMEMODE_VERSION_PATCH 0
 
-#define CHAT_GLOBAL true
+#define CHAT_GLOBAL false
 new bool:GlobalChatEnabled = CHAT_GLOBAL;
+
+#define MAX_PLAYER_CHARACTERS 10
