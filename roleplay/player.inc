@@ -15,7 +15,7 @@ enum PlayerDataEnum
 {
 	bool:pLogged = false,
 	bool:pSpawned = false,
-	pAdmin, // ipb_members, konieczna modyfikacja tabeli z forum(game_admin_level)
+	pAdmin, // ipb_core_members, konieczna modyfikacja tabeli z forum(game_admin_level)
 	pGID,
 	pUID,
 	pName[MAX_PLAYER_NAME],
@@ -36,6 +36,12 @@ stock PlayerName(playerid)
 	new name[MAX_PLAYER_NAME];
 	GetPlayerName(playerid, name, sizeof(name));
 	return name;
+}
+
+stock ClearPlayerChat(playerid)
+{
+	for(new i; i < 50; i++)
+		SendClientMessage(playerid, 0xFFFFFFFF, "");
 }
 
 forward SavePlayerData(playerid);
@@ -87,6 +93,8 @@ hook OnPlayerConnect(playerid)
 
 	for(new i; i < MAX_PLAYER_CHARACTERS; i++)
 		PlayerCharacters[playerid][i] = 0;
+
+	ClearPlayerChat(playerid);
 
 	PlayerNameLabel[playerid] = CreateDynamic3DTextLabel("", 0xFFFFFFFF, 0, 0, 0, 30, playerid);
 		

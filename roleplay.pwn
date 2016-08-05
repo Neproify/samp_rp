@@ -2,6 +2,7 @@
 #include <a_mysql>
 #include <easydialog>
 #include <streamer>
+#include <bcrypt>
 #include <YSF>
 #include <YSI\y_commands>
 #include <YSI\y_hooks>

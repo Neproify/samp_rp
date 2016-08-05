@@ -4,7 +4,7 @@ Dialog:Login(playerid, response, listitem, inputtext[])
 		Kick(playerid);
 
 	new buffer[256];
-	mysql_format(dbHandler, buffer, sizeof(buffer), "SELECT * FROM `ipb_members` WHERE `name`='%s' LIMIT 1;", PlayerName(playerid));
+	mysql_format(dbHandler, buffer, sizeof(buffer), "SELECT * FROM `ipb_core_members` WHERE `name`='%s' LIMIT 1;", PlayerName(playerid));
 	mysql_pquery(dbHandler, buffer, "OnGlobalAccountDataGet", "is", playerid, inputtext);
 	return 1;
 }
@@ -24,34 +24,31 @@ Dialog:SelectCharacter(playerid, response, listitem, inputtext[])
 forward OnGlobalAccountDataGet(playerid, password[]);
 public OnGlobalAccountDataGet(playerid, password[])
 {
-	new salt[6], hash[33], buffer[256], rows, fields;
+	new hash[128], rows, fields;
 	cache_get_data(rows, fields, dbHandler);
 	if(rows != 1) // Nie ma takiego konta
 	{
 		Dialog_Show(playerid, InfoAndKick, DIALOG_STYLE_MSGBOX, "Logowanie", "Nie posiadasz jeszcze konta na naszym serwerze! Za³ó¿ je na naszym forum.", "OK", "");
 		return 0;
 	}
-	cache_get_field_content(0, "members_pass_salt", salt);
 	cache_get_field_content(0, "members_pass_hash", hash);
-	mysql_format(dbHandler, buffer, sizeof(buffer), "SELECT * FROM `ipb_members` WHERE `name`='%s' AND `members_pass_hash`=md5(CONCAT(md5('%s'), md5('%s'))) LIMIT 1;", PlayerName(playerid), salt, password);
-	mysql_pquery(dbHandler, buffer, "OnGlobalAccountLogin", "i", playerid);
+	PlayerData[playerid][pGID] = cache_get_field_content_int(0, "member_id", dbHandler);
+	PlayerData[playerid][pAdmin] = cache_get_field_content_int(0, "game_admin_level", dbHandler);
+	bcrypt_check(password, hash, "OnGlobalAccountLogin", "d", playerid);
 	return 1;
 }
 
 forward OnGlobalAccountLogin(playerid);
 public OnGlobalAccountLogin(playerid)
 {
-	new rows, fields, buffer[256];
-	cache_get_data(rows, fields, dbHandler);
-	if(rows != 1) // nie zalogowano
+	new buffer[256];
+	if(!bcrypt_is_equal()) // nie zalogowano
 	{
 		Dialog_Show(playerid, Login, DIALOG_STYLE_PASSWORD, "Logowanie", "Poda³eœ z³e has³o!", "Zaloguj", "Anuluj");
 		return 0;
 	}
 	// zalogowano, pobieramy listê postaci.
 	PlayerData[playerid][pLogged] = true;
-	PlayerData[playerid][pGID] = cache_get_field_content_int(0, "member_id", dbHandler);
-	PlayerData[playerid][pAdmin] = cache_get_field_content_int(0, "game_admin_level", dbHandler);
 	mysql_format(dbHandler, buffer, sizeof(buffer), "SELECT * FROM `rp_characters` WHERE `globalid`=%d", PlayerData[playerid][pGID]);
 	mysql_pquery(dbHandler, buffer, "OnPlayerCharactersFetched", "i", playerid);
 	Group_SetPlayer(LoggedPlayers, playerid, true);
@@ -69,6 +66,9 @@ public OnPlayerCharactersFetched(playerid)
 	cache_get_data(rows, fields, dbHandler);
 	if(rows < 1) // brak postaci
 	{
+		for(new PlayerDataEnum:e; e < PlayerDataEnum; e++)
+		PlayerData[playerid][e] = 0;
+		
 		Dialog_Show(playerid, InfoAndKick, DIALOG_STYLE_MSGBOX, "Logowanie", "Nie posiadasz ¿adnej postaci. Za³ó¿ j¹ na naszym forum!", "OK", "");
 		return 0;
 	}
