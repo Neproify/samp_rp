@@ -16,7 +16,7 @@ Dialog:SelectCharacter(playerid, response, listitem, inputtext[])
 
 	new buffer[128];
 	mysql_format(dbHandler, buffer, sizeof(buffer), "SELECT * FROM `rp_characters` WHERE `UID`=%d AND `globalid`=%d LIMIT 1;", 
-		PlayerCharacters[playerid][listitem][UID], PlayerData[playerid][pGID]);
+		PlayerCharacters[playerid][listitem], PlayerData[playerid][pGID]);
 	mysql_pquery(dbHandler, buffer, "OnCharacterSelected", "i", playerid);
 	return 1;
 }
@@ -54,6 +54,11 @@ public OnGlobalAccountLogin(playerid)
 	PlayerData[playerid][pAdmin] = cache_get_field_content_int(0, "game_admin_level", dbHandler);
 	mysql_format(dbHandler, buffer, sizeof(buffer), "SELECT * FROM `rp_characters` WHERE `globalid`=%d", PlayerData[playerid][pGID]);
 	mysql_pquery(dbHandler, buffer, "OnPlayerCharactersFetched", "i", playerid);
+	Group_SetPlayer(LoggedPlayers, playerid, true);
+	if(PlayerData[playerid][pAdmin] > 0)
+	{
+		Group_SetPlayer(Admins[PlayerData[playerid][pAdmin]], playerid, true);
+	}
 	return 1;
 }
 
@@ -69,9 +74,15 @@ public OnPlayerCharactersFetched(playerid)
 	}
 	for(new i = 0; i < rows; i++)
 	{
-		PlayerCharacters[playerid][i][UID] = cache_get_field_content_int(i, "UID", dbHandler);
-		cache_get_field_content(i, "name", PlayerCharacters[playerid][i][characterName], dbHandler, 32);
-		format(buffer, sizeof(buffer), "%s%s\n", buffer, PlayerCharacters[playerid][i][characterName]);
+		if(i > MAX_PLAYER_CHARACTERS)
+		{
+			printf("PRZEKROCZONO MAX_PLAYER_CHARACTERS(%d)", rows);
+			break;
+		}
+		new name[MAX_PLAYER_NAME + 1];
+		PlayerCharacters[playerid][i] = cache_get_field_content_int(i, "UID", dbHandler);
+		cache_get_field_content(i, "name", name, dbHandler, sizeof(name));
+		format(buffer, sizeof(buffer), "%s%s\n", buffer, name);
 	}
 	Dialog_Show(playerid, SelectCharacter, DIALOG_STYLE_LIST, "Wybierz postaæ", buffer, "Graj", "Anuluj");
 	return 1;
@@ -87,10 +98,11 @@ public OnCharacterSelected(playerid)
 		Kick(playerid);
 		return 0;
 	}
-	cache_get_field_content(0, "name", PlayerData[playerid][pName], dbHandler, 32);
-	SetSpawnInfo(playerid, 0, 0, 1481.8495, -1687.1045, 14.0469, 178.7321, 0, 0, 0, 0, 0, 0);
-	PlayerData[playerid][pSpawned] = true;
-	SetPlayerName(playerid, PlayerData[playerid][pName]);
-	SpawnPlayer(playerid);
+	PlayerData[playerid][pUID] = cache_get_field_content_int(0, "UID", dbHandler);
+	cache_get_field_content(0, "name", PlayerData[playerid][pName], dbHandler, MAX_PLAYER_NAME);
+	PlayerData[playerid][pSkin] = cache_get_field_content_int(0, "skin", dbHandler);
+	PlayerData[playerid][pMoney] = cache_get_field_content_int(0, "money", dbHandler);
+	PlayerData[playerid][pHealth] = cache_get_field_content_int(0, "health", dbHandler);
+	CallLocalFunction("SpawnPlayerAfterLogin", "d", playerid);
 	return 1;
 }

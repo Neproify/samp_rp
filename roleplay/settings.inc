@@ -13,3 +13,10 @@
 new bool:GlobalChatEnabled = CHAT_GLOBAL;
 
 #define MAX_PLAYER_CHARACTERS 10
+
+#define MAX_ITEMS 1024
+#define MAX_ITEM_NAME 64
+#define MAX_ITEM_PROPERTIES_LENGTH 32
+#define MAX_PLAYER_ITEMS 32
+
+#define MAX_ADMIN_LEVELS 4
