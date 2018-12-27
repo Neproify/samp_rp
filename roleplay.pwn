@@ -9,16 +9,18 @@
 #include <YSI\y_groups>
 #include <YSI\y_iterate>
 #include <sscanf2>
+#include <strlib>
 
 // nasze includy
-#include "roleplay\dbsettings.inc" // dane do bazy danych - MUSI BYÆ PIERWSZE
+#include "roleplay\dbsettings.inc" // dane do bazy danych - MUSI BYÄ† PIERWSZE
 #include "roleplay\settings.inc" // ustawienia, wszelakie definicje, itd.
 #include "roleplay\dialogs.inc" // wszelakie uniwersalne dialogi
-#include "roleplay\player.inc" // rzeczy zwi¹zane z graczem
+#include "roleplay\player.inc" // rzeczy zwiÄ…zane z graczem
 #include "roleplay\chat.inc" // chat
 #include "roleplay\items.inc" // przedmioty
 #include "roleplay\login.inc" // logowanie
 #include "roleplay\admin_cmds.inc" // komendy dla administracji
+#include "roleplay\items\weapons.inc" // Bronie
 
 main()
 {
@@ -39,9 +41,9 @@ public OnGameModeInit()
 	EnableStuntBonusForAll(false);
 	ShowNameTags(false);
 	ShowPlayerMarkers(false);
-	Group_SetGlobalCommandDefault(false); // Wy³¹czamy wszystkie komendy.
+	Group_SetGlobalCommandDefault(false); // WyÅ‚Ä…czamy wszystkie komendy.
 
-	CallLocalFunction("OnGroupPermissions", ""); // Mo¿emy podstawiaæ hooki w "modu³ach"
+	CallLocalFunction("OnGroupPermissions", ""); // MoÅ¼emy podstawiaÄ‡ hooki w "moduÅ‚ach"
 	return 1;
 }
 
@@ -67,6 +69,11 @@ public OnPlayerText(playerid, text[])
 }
 
 public OnPlayerUpdate(playerid)
+{
+	return 1;
+}
+
+public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY, Float:fZ)
 {
 	return 1;
 }

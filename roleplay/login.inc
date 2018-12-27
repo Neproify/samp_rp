@@ -24,16 +24,16 @@ Dialog:SelectCharacter(playerid, response, listitem, inputtext[])
 forward OnGlobalAccountDataGet(playerid, password[]);
 public OnGlobalAccountDataGet(playerid, password[])
 {
-	new hash[128], rows, fields;
-	cache_get_data(rows, fields, dbHandler);
+	new hash[128], rows;
+	cache_get_row_count(rows);
 	if(rows != 1) // Nie ma takiego konta
 	{
 		Dialog_Show(playerid, InfoAndKick, DIALOG_STYLE_MSGBOX, "Logowanie", "Nie posiadasz jeszcze konta na naszym serwerze! Za³ó¿ je na naszym forum.", "OK", "");
 		return 0;
 	}
-	cache_get_field_content(0, "members_pass_hash", hash);
-	PlayerData[playerid][pGID] = cache_get_field_content_int(0, "member_id", dbHandler);
-	PlayerData[playerid][pAdmin] = cache_get_field_content_int(0, "game_admin_level", dbHandler);
+	cache_get_value_name(0, "members_pass_hash", hash);
+	cache_get_value_name_int(0, "member_id", PlayerData[playerid][pGID]);
+	cache_get_value_name_int(0, "game_admin_level", PlayerData[playerid][pAdmin]);
 	bcrypt_check(password, hash, "OnGlobalAccountLogin", "d", playerid);
 	return 1;
 }
@@ -62,8 +62,8 @@ public OnGlobalAccountLogin(playerid)
 forward OnPlayerCharactersFetched(playerid);
 public OnPlayerCharactersFetched(playerid)
 {
-	new rows, fields, buffer[1024] = "";
-	cache_get_data(rows, fields, dbHandler);
+	new rows, buffer[1024] = "";
+	cache_get_row_count(rows);
 	if(rows < 1) // brak postaci
 	{
 		for(new PlayerDataEnum:e; e < PlayerDataEnum; e++)
@@ -80,8 +80,8 @@ public OnPlayerCharactersFetched(playerid)
 			break;
 		}
 		new name[MAX_PLAYER_NAME + 1];
-		PlayerCharacters[playerid][i] = cache_get_field_content_int(i, "UID", dbHandler);
-		cache_get_field_content(i, "name", name, dbHandler, sizeof(name));
+		cache_get_value_name_int(i, "UID", PlayerCharacters[playerid][i]);
+		cache_get_value_name(i, "name", name, sizeof(name));
 		format(buffer, sizeof(buffer), "%s%s\n", buffer, name);
 	}
 	Dialog_Show(playerid, SelectCharacter, DIALOG_STYLE_LIST, "Wybierz postaæ", buffer, "Graj", "Anuluj");
@@ -91,18 +91,18 @@ public OnPlayerCharactersFetched(playerid)
 forward OnCharacterSelected(playerid);
 public OnCharacterSelected(playerid)
 {
-	new rows, fields;
-	cache_get_data(rows, fields, dbHandler);
+	new rows;
+	cache_get_row_count(rows);
 	if(rows < 1) // wredny cheater, fuj
 	{
 		Kick(playerid);
 		return 0;
 	}
-	PlayerData[playerid][pUID] = cache_get_field_content_int(0, "UID", dbHandler);
-	cache_get_field_content(0, "name", PlayerData[playerid][pName], dbHandler, MAX_PLAYER_NAME);
-	PlayerData[playerid][pSkin] = cache_get_field_content_int(0, "skin", dbHandler);
-	PlayerData[playerid][pMoney] = cache_get_field_content_int(0, "money", dbHandler);
-	PlayerData[playerid][pHealth] = cache_get_field_content_int(0, "health", dbHandler);
+	cache_get_value_name_int(0, "UID", PlayerData[playerid][pUID]);
+	cache_get_value_name(0, "name", PlayerData[playerid][pName], MAX_PLAYER_NAME);
+	cache_get_value_name_int(0, "skin", PlayerData[playerid][pSkin]);
+	cache_get_value_name_int(0, "money", PlayerData[playerid][pMoney]);
+	cache_get_value_name_int(0, "health", PlayerData[playerid][pHealth]);
 	CallLocalFunction("SpawnPlayerAfterLogin", "d", playerid);
 	return 1;
 }

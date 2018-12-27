@@ -3,15 +3,15 @@
 #define DB_HOSTNAME "127.0.0.1"
 #define DB_USERNAME "root"
 #define DB_PASSWORD ""
-#define DB_DATABASE "samp"
+#define DB_DATABASE "samprp"
 
-new dbHandler;
+new MySQL:dbHandler;
 
 hook OnGameModeInit()
 {
 	print("£¹czenie z baz¹ danych...");
-	mysql_log(LOG_ERROR | LOG_WARNING | LOG_DEBUG);
-	dbHandler = mysql_connect(DB_HOSTNAME, DB_USERNAME, DB_DATABASE, DB_PASSWORD);
+	mysql_log(ALL);
+	dbHandler = mysql_connect(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_DATABASE);
 	if(mysql_errno() != 0)
 	{
 		print("B³¹d podczas ³¹czenia z baz¹ danych.");

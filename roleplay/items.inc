@@ -16,14 +16,15 @@ enum ItemDataEnum
 	iType,
 	iProperties[MAX_ITEM_PROPERTIES_LENGTH], // Rozdzielane znakiem "|"
 	iOwnerID,
-	iOwnerType // 1 - postaæ(ekwipunek)
+	iOwnerType,// 1 - postaæ(ekwipunek)
+	bool:iUsed
 }
 new ItemData[MAX_ITEMS][ItemDataEnum];
 new Iterator:PlayerItems<MAX_PLAYERS, MAX_ITEMS>;
 new Iterator:Items<MAX_ITEMS>;
 
-forward UsePlayerItem(playerid, itemID);
-public UsePlayerItem(playerid, itemID) {}
+forward OnPlayerUseItem(playerid, itemID);
+public OnPlayerUseItem(playerid, itemID) {}
 
 hook OnGameModeInit()
 {
@@ -40,8 +41,8 @@ hook OnPlayerConnect(playerid)
 forward OnItemsFetched();
 public OnItemsFetched()
 {
-	new rows, fields;
-	cache_get_data(rows, fields, dbHandler);
+	new rows;
+	cache_get_row_count(rows);
 	for(new i = 0; i < rows; i++)
 	{
 		if(i > MAX_ITEMS)
@@ -49,12 +50,12 @@ public OnItemsFetched()
 			printf("PRZEKROCZONO MAX_ITEMS(%d)!", rows);
 			break;
 		}
-		ItemData[i][iUID] = cache_get_field_content_int(i, "UID", dbHandler);
-		cache_get_field_content(i, "name", ItemData[i][iName], dbHandler, MAX_ITEM_NAME);
-		ItemData[i][iType] = cache_get_field_content_int(i, "type", dbHandler);
-		cache_get_field_content(i, "properties", ItemData[i][iProperties], dbHandler, MAX_ITEM_PROPERTIES_LENGTH);
-		ItemData[i][iOwnerID] = cache_get_field_content_int(i, "ownerID", dbHandler);
-		ItemData[i][iOwnerType] = cache_get_field_content_int(i, "ownerType", dbHandler);
+		cache_get_value_name_int(i, "UID", ItemData[i][iUID]);
+		cache_get_value_name(i, "name", ItemData[i][iName], MAX_ITEM_NAME);
+		cache_get_value_name_int(i, "type", ItemData[i][iType]);
+		cache_get_value_name(i, "properties", ItemData[i][iProperties], MAX_ITEM_PROPERTIES_LENGTH);
+		cache_get_value_name_int(i, "ownerID", ItemData[i][iOwnerID]);
+		cache_get_value_name_int(i, "ownerType", ItemData[i][iOwnerType]);
 		Iter_Add(Items, i);
 	}
 	if(rows > MAX_ITEMS)
@@ -94,7 +95,7 @@ Dialog:ShowPlayerItems(playerid, response, listitem, inputtext[])
 		}
 		count++;
 	}
-	CallLocalFunction("UsePlayerItem", "dd", playerid, itemID);
+	CallLocalFunction("OnPlayerUseItem", "dd", playerid, itemID);
 	return 1;
 }
 
@@ -104,7 +105,14 @@ YCMD:przedmioty(playerid, params[], help) // TODO: sprawdzanie czy ma jakiekolwi
 	buffer = "UID\tNazwa\n";
 	foreach(new i : PlayerItems<playerid>)
 	{
-		format(buffer, sizeof(buffer), "%s%d\t%s\n", buffer, ItemData[i][iUID], ItemData[i][iName]);
+		if(ItemData[i][iUsed])
+		{
+			format(buffer, sizeof(buffer), "%s{006400}%d\t{006400}%s\n", buffer, ItemData[i][iUID], ItemData[i][iName]);
+		}
+		else
+		{
+			format(buffer, sizeof(buffer), "%s%d\t%s\n", buffer, ItemData[i][iUID], ItemData[i][iName]);
+		}
 	}
 	Dialog_Show(playerid, ShowPlayerItems, DIALOG_STYLE_TABLIST_HEADERS, "Przedmioty", buffer, "U¿yj", "Anuluj");
 	return 1;
@@ -116,4 +124,36 @@ hook OnGroupPermissions()
 	{
 		@YCMD:przedmioty;
 	}
+}
+
+GetItemPropertyBySlot(itemID, slot)
+{
+	new properties[15][MAX_ITEM_PROPERTIES_LENGTH];
+	strexplode(properties, ItemData[itemID][iProperties], "|");
+	return properties[slot];
+}
+
+SetItemPropertyBySlot(itemID, slot, value[])
+{
+	new properties[MAX_ITEM_PROPERTIES_LENGTH];
+	properties = "";
+	for(new i = 0; i <= 14; i++)
+	{
+		new val[MAX_ITEM_PROPERTIES_LENGTH];
+		val = GetItemPropertyBySlot(itemID, i);
+		if(isnull(val))
+		{
+			break;
+		}
+		if(i != slot)
+		{
+			format(properties, sizeof(properties), "%s%s|", properties, GetItemPropertyBySlot(itemID, i));
+		}
+		else
+		{
+			format(properties, sizeof(properties), "%s%s|", properties, value);
+		}
+	}
+	strtrim(properties, "|", edge_right);
+	ItemData[itemID][iProperties] = properties;
 }
